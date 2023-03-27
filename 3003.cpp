@@ -1,0 +1,19 @@
+#include <iostream>
+
+using namespace std;
+
+int main() {
+
+	int arr[] = { 1, 1, 2, 2, 2, 8 };
+	int chess[6];
+ 	for (int i = 0; i < 6; i++) {
+		cin >> chess[i];
+	}
+
+	for (int i = 0; i < 6; i++) {
+		cout << arr[i] - chess[i] << " ";
+	}
+
+
+	return 0;
+}
