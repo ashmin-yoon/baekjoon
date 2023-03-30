@@ -3,4 +3,4 @@
 a.out.dSYM/
 test.c
 test.cpp
-
+*.swp
