@@ -1,4 +1,6 @@
 
 *.out
-a.out.dYSM/
+a.out.dSYM/
+test.c
+test.cpp
 
