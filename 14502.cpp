@@ -132,7 +132,7 @@ int CalcVirusCount() {
 	return cnt;
 }
 
-void WallBruteFroce(int count)
+void WallBruteFroce(int count, int level)
 {
 	if (count == 3)
 	{
@@ -141,19 +141,18 @@ void WallBruteFroce(int count)
 		return;
 	}
 
-	for (int i = 0; i < N; i++)
+	for (int l = level; l < N*M; l++)
 	{
-		for (int j = 0; j < M; j++)
+		int i = l / M;
+		int j = l % M;
+
+		if (map[i][j] == SPACE && !visited[i][j])
 		{
-			if (map[i][j] == SPACE && !visited[i][j])
-			{
-				visited[i][j] = true;
-				map[i][j] = WALL;
-				WallBruteFroce(count + 1);
-				map[i][j] = SPACE;
-				visited[i][j] = false;
-			}
+			map[i][j] = WALL;
+			WallBruteFroce(count + 1, l + 1);
+			map[i][j] = SPACE;
 		}
+
 	}
 }
 
@@ -164,7 +163,7 @@ int main()
 
 	wall_count += 3; // 벽 3개 추가
 
-	WallBruteFroce(0);
+	WallBruteFroce(0, 0);
 
 	ans = (N * M) - min_virus_count - wall_count;
 	cout << ans << endl;
