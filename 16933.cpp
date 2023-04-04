@@ -78,8 +78,20 @@ int BFS() {
 		if (y == N && x == M)
 			return cnt;
 
+
+
 		// 다음 상태
 		State next_state = state == DAY ? NIGHT : DAY;
+
+
+		// 현재 칸에 머무르기
+		if (!visited[y][x][break_cnt][next_state])
+		{
+			visited[y][x][break_cnt][next_state] = true;
+			q.push(Data(y, x, cnt + 1, break_cnt, next_state));
+		}
+
+		// 이동
 		for (int i = 0; i < 4; i++) {
 			int next_y = y + dy[i];
 			int next_x = x + dx[i];
@@ -91,11 +103,7 @@ int BFS() {
 				// 현재가 밤
 				if (state == NIGHT)
 				{
-					// 현재에 머무르기 or 끝
-					if (!visited[y][x][break_cnt][next_state]) {
-						visited[y][x][break_cnt][next_state] = true;
-						q.push(Data(y, x, cnt + 1, break_cnt, next_state));
-					}
+					// 끝
 					continue;
 				}
 
