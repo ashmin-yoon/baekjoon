@@ -14,6 +14,7 @@ int W, H;
 int dirty_cnt = 0;
 
 int robot_y, robot_x;
+int ans = INF;
 
 int dist[11][11]; // 거리 0 = robot, 1 ~ 10  dirty
 bool selected[11];
@@ -136,6 +137,7 @@ void Init() {
 	InitVisited();
 	InitDist();
 	InitFurniture();
+	ans = INF;
 }
 
 
@@ -195,13 +197,16 @@ void CalcDist(int idx) {
 
 
 // 거리를 BruteForce로 구함
-int Dfs(int index, int count, int sum) {
-	int rev = INF;
+void Dfs(int index, int count, int sum) {
 
 	// 종료 조건 -> 전체 더러운 곳 방문
 	if (count == dirty_cnt) {
-		return sum;	
+		ans = min(ans, sum);
+		return;
 	}
+
+	if (sum > ans)
+		return;
 
 	// dirty 전체 순회
 	for (int next = 1; next <= dirty_cnt; next++) {
@@ -209,11 +214,9 @@ int Dfs(int index, int count, int sum) {
 		int dist_sum = sum + dist[index][next]; 
 
 		selected[next] = true; // 선택
-		rev = min(rev, Dfs(next, count + 1, dist_sum));
+		Dfs(next, count + 1, dist_sum);
 		selected[next] = false; // 선택 해제
 	}
-
-	return rev;
 }
 
 void PrintDist() {
@@ -242,7 +245,8 @@ int Solution() {
 	}
 
 	// 구한 거리를 이용해서 브루트 포스 진행
-	return Dfs(0, 0, 0);
+	Dfs(0, 0, 0);
+	return ans;
 }
 
 int main() {
