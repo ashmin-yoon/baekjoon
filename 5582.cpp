@@ -43,7 +43,6 @@ int GetCommonLength(int i, int j) {
 	}
 
 	// 같던 다르던 다음 진행
-	GetCommonLength(i + 1, j);
 	GetCommonLength(i, j + 1);
 
 	ans = max(ans, ret); // 최대값 갱신
@@ -51,12 +50,17 @@ int GetCommonLength(int i, int j) {
 }
 
 
+
 int main() {
 	cin >> str1;
 	cin >> str2;
 
 	Init();
-	GetCommonLength(0, 0);
+
+	// str1 순회
+	for (int i = 0; i < str1.size(); i++) {
+		GetCommonLength(i, 0);
+	}
 	cout << ans;
 
 	return 0;
