@@ -4,16 +4,17 @@
 using namespace std;
 const int MAX_SIZE = 50;
 
-const int UP = 0;
-const int RIGHT = 1;
-const int DOWN = 2;
-const int LEFT = 3;
-
 int N;
 int L, R; // L <= 인구수 차이 <= R
 
+// 시간 단축
+// MovePopulation 에서 queue 생성 -> 
+// 전역 queue 공통으로 사용
+
+queue<pair<int, int> > q;
+queue<pair<int, int> > path;
+
 int country[MAX_SIZE][MAX_SIZE];
-bool isOpen[MAX_SIZE][MAX_SIZE][4]; // 4 방향
 bool visited[MAX_SIZE][MAX_SIZE];
 
 int dy[4] = {-1, 0, 1, 0};
@@ -48,67 +49,28 @@ void Input() {
 	}
 }
 
-void InitBorderStatusAndVisited() {
+void Init() {
+
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
 			visited[i][j] = false;
-			for (int k = 0; k < 4; k++) {
-				isOpen[i][j][k] = false;
-			}
 		}
 	}
-}
-
-
-bool OpenBorder() {
-	bool ret = false;
-
-	// 우측과 아래칸만 검사하면 전체
-	for (int i = 0; i < N; i++) {
-		for (int j = 0; j < N; j++) {
-			int curr = country[i][j];
-
-			// 우측
-			if (!OutOfRange(i, j + 1)) {
-				int right_diff = abs(curr - country[i][j + 1]);
-				if (GetBorderOpenStatus(right_diff)) {
-					isOpen[i][j][RIGHT] = true;
-					isOpen[i][j + 1][LEFT] = true;
-					ret = true;
-				}
-			}
-
-
-			// 아래측
-			if (!OutOfRange(i + 1, j)) {
-				int down_diff = abs(curr - country[i + 1][j]);
-				if (GetBorderOpenStatus(down_diff)) {
-					isOpen[i][j][DOWN] = true;
-					isOpen[i + 1][j][UP] = true;
-					ret = true;
-				}
-			}
-		}
-	}
-
-	return ret;
 }
 
 
 // BFS 열린 국경으로 인구 조정
-void MovePopulation(int y, int x) {
+bool MovePopulation(int y, int x) {
 	if (visited[y][x])
-		return;
+		return false;
 
-
-	queue<pair<int, int> > q;
-	queue<pair<int, int> > path;
 	int sum = 0;
 	int country_cnt = 0;
 
 	// 시작 지점
 	visited[y][x] = true;
 	q.push(make_pair(y, x));
+
 
 	// 찾기 시작
 	while (!q.empty()) {
@@ -117,7 +79,8 @@ void MovePopulation(int y, int x) {
 		path.push(q.front());
 		q.pop();
 
-		sum += country[y][x];
+		int curr_popul = country[y][x];
+		sum += curr_popul;
 		country_cnt++;
 
 		for (int i = 0; i < 4; i++) {
@@ -125,8 +88,9 @@ void MovePopulation(int y, int x) {
 			int nx = x + dx[i];
 
 			if (OutOfRange(ny, nx)) continue;
-			if (visited[ny][nx]) continue;
-			if (!isOpen[y][x][i]) continue; // 주의 현재 위치 기준 + 방향으로 검사
+            if (visited[ny][nx]) continue;
+			int popul_diff = abs(curr_popul - country[ny][nx]); // 이웃 나라 인구
+			if (!GetBorderOpenStatus(popul_diff)) continue; // 국경을 열 수 없음
 
 			visited[ny][nx] = true;
 			q.push(make_pair(ny, nx));
@@ -144,6 +108,11 @@ void MovePopulation(int y, int x) {
 		country[y][x] = population;
 	}
 
+	// 이동이 일어났는지 여부
+	if (country_cnt >= 2)
+		return true;
+	else
+		return false;
 }
 
 void PrintCountry() {
@@ -163,23 +132,25 @@ int Solution() {
 
 	int cnt = 0;
 	while (true) {
-		InitBorderStatusAndVisited(); // visited, border status
-		bool status = OpenBorder();
-
-		// 열수 없음
-		if (status == false)
-			break;
+		bool move_status = false;
+		Init(); // visited, queue
 
 		// 이동
 		for (int i = 0; i < N; i++) {
 			for (int j = 0; j < N; j++) {
-				MovePopulation(i, j);
+				if (MovePopulation(i, j))
+					move_status = true;
 			}
 		}
+
+		// 중단 조건 = 이동 없음
+		if (move_status == false)
+			break;
+
 		cnt++;
 		//PrintCountry();
 	}
-	
+
 	return cnt;
 }
 
