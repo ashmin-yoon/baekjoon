@@ -1,302 +1,138 @@
 #include <iostream>
-#include <queue>
-#include <vector>
-#include <utility>
-#include <algorithm>
-#include <unistd.h>
-#include <stack>
-
 using namespace std;
+const int MAX_SIZE = 10;
+const int INF = 987654321;
 
-//vector<int, pair<int, int>> v;	//  (주변 전구 수, (ij좌표))
-int result = 0;
+bool isLight[MAX_SIZE][MAX_SIZE];
+bool backup[MAX_SIZE][MAX_SIZE];
 
+int dy[4] = {-1 ,0, 1, 0};
+int dx[4] = {0, 1, 0, -1};
 
-class Info {
-	public:
-		Info(int arroundBulbCount, bool isLightOn, int r, int c) {
-			mArroundBulbCount = arroundBulbCount;
-			mIsLightOn = isLightOn;
-			this->r = r;
-			this->c = c;
+void FastIO() {
+	cin.tie(nullptr);
+	cout.tie(nullptr);
+	ios::sync_with_stdio(false);
+}
+
+void Input() {
+	char ch;
+	for (int i = 0; i < MAX_SIZE; i++) {
+		for (int j = 0; j < MAX_SIZE; j++) {
+			cin >> ch;
+			isLight[i][j] = ch == 'O' ? true : false;
 		}
-		bool operator<(Info info) const {
-			if (this->mArroundBulbCount == info.mArroundBulbCount) {
-				return this->mIsLightOn; // 참이면 앞에 있음
-			}
-			else
-			{
-				// 주변에 있는 전구 수로 내림차순
-				return this->mArroundBulbCount > info.mArroundBulbCount;
-			}
-		}
+	}
+}
 
-		int mArroundBulbCount;
-		int mIsLightOn;
-		int r;
-		int c;
-};
+bool OutOfRange(int y, int x) {
+	if (y < 0 || y >= MAX_SIZE) return true;
+	if (x < 0 || x >= MAX_SIZE) return true;
+	return false;
+}
 
+void TurnOnConditon(int y, int x) {
 
+	isLight[y][x] = !isLight[y][x];
 
-void PlusCountMap(int i, int j);
-void MinusCountMap(int i, int j);
-//void SetArroundCount();
-//void PrintArroundBulbCountMap();
-void TurnOnOffLight(int i, int j, bool map[][10]);
-vector<Info> SearchRoute(bool map[][10], bool visit[][10]);
-void PrintMap(bool map[][10]);
-void PrintStack();
-void Solution(int r, int c, bool pre_map[][10], bool pre_visit[][10]);
+	// 주변
+	for (int i = 0; i < 4; i++) {
+		int ny = y + dy[i];
+		int nx = x + dx[i];
 
-
-int GetArroundCount(int r, int c, bool map[][10]);
-bool CheckSuccess(bool map[][10]);
-
-
-int main() {
-	// 맵 세팅
-
-	/*
-
-	bool map[10][10];
-	string str;
-	for (int i = 0; i < 10; i++) 
-	{
-		cin >> str;
-		for (int j = 0; j < 10; j++) {
-			if (str[j] == 'O') {
-				map[i][j] = true; // 대문자 o 'O' => 1 전구 불 들어옴
-				PlusCountMap(i, j);
-			}
+		if (!OutOfRange(ny, nx)) {
+			isLight[ny][nx] = !isLight[ny][nx];
 		}
 	}
 
-	vector<Info> v;
-	v = SearchRoute();
+}
 
-	for (int i = 0; i < v.size(); i++) {
-		Solution(v[i].r, v[i].c); // 문제 해결 함수
+void Backup() {
+	for (int i = 0; i < MAX_SIZE; i++) {
+		for (int j = 0; j < MAX_SIZE; j++) {
+			backup[i][j] = isLight[i][j];
+		}
 	}
-	*/
-	bool map[10][10] = { false };
-	bool visit[10][10] = { false };
-	string str;
-	for (int i = 0; i < 10; i++) 
-	{
-		cin >> str;
-		for (int j = 0; j < 10; j++) {
-			if (str[j] == 'O') {
-				map[i][j] = true; // 대문자 o 'O' => 1 전구 불 들어옴
-				visit[i][j] = false;
+}
+
+void CopyBackupToIsLight() {
+	for (int i = 0; i < MAX_SIZE; i++) {
+		for (int j = 0; j < MAX_SIZE; j++) {
+			isLight[i][j] = backup[i][j];
+		}
+	}
+}
+
+int RunTC(int tc) {
+
+	int turnOnCount = 0;
+
+	for (int i = 1; i < MAX_SIZE; i++) {
+		for (int j = 0; j < MAX_SIZE; j++) {
+			if (isLight[i - 1][j]) {
+				TurnOnConditon(i, j);
+				turnOnCount++;
 			}
 		}
 	}
-	//PrintMap(map);
-	Solution(-1, -1, map, visit);
-	//cout << visit_st.size() << endl;
-	return 0;
+
+	return turnOnCount;
 }
 
-
-
-
-
-
-/*
-	 void PlusCountMap(int i, int j) {
-	if (i > 0)
-		count[i - 1][j]++; // 위
-	if (i < 9)
-		count[i + 1][j]++; // 아래
-	if (j > 0)
-		count[i][j - 1]++; // 왼
-	if (j < 9)
-		count[i][j + 1]++; // 오
-}
-
-void MinusCountMap(int i, int j) {
-	if (i > 0)
-		count[i - 1][j]--; // 위
-	if (i < 9)
-		count[i + 1][j]--; // 아래
-	if (j > 0)
-		count[i][j - 1]--; // 왼
-	if (j < 9)
-		count[i][j + 1]--; // 오
-}
-*/
-
-int GetArroundCount(int r, int c, bool map[][10]) {
-	int rev = 0;
-
-	if ((r > 0) && map[r - 1][c])
-		rev++;
-	if ((r < 9) && map[r + 1][c])
-		rev++;
-	if ((c > 0) && map[r][c - 1])
-		rev++;
-	if ((c < 9) && map[r][c + 1])
-		rev++;
-
-	return rev;
-}
-
-/*
-void SetArroundCount() {
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			count[i][j] = 0;
-		}
-	}
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			if (map[i][j]) {
-				PlusCountMap(i, j); // 전구 불 빛이 있을 때 주변 값 변경
-			}
-		}
-	}
-}
-
-
-void PrintArroundBulbCountMap() {
-	cout << "Count Map" << endl;
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			cout << count[i][j];
-		}
-		cout << "\n";
-	}
-}
-*/
-
-void TurnOnOffLight(int i, int j, bool map[][10]) {
-	// i, j 위치에 불 바꿈	
-	if (i > 0)
-		map[i - 1][j] = !map[i - 1][j]; // 위
-	if (i < 9)
-		map[i + 1][j] = !map[i + 1][j]; // 아래
-	if (j > 0)
-		map[i][j - 1] = !map[i][j - 1]; // 왼
-	if (j < 9)
-		map[i][j + 1] = !map[i][j + 1]; // 오
-
-	map[i][j] = !map[i][j];
-}
-
-vector<Info> SearchRoute(bool map[][10], bool visit[][10]) {
-	vector<Info> v; 
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			int tmp_count = GetArroundCount(i, j, map);
-			if ((tmp_count >= 2) && (visit[i][j] == false)) {
-				v.push_back(Info(tmp_count, map[i][j], i, j));
-				//cout << tmp_count << "(" << i << ", " << j << ") "<< endl;
-				//cout << visit[i][j] << endl;
-			}
-		}
-	}	
-
-	sort(v.begin(), v.end()); // 내림차순 정렬 - 사용자 정의
-
-	//for (int i = 0; i < v.size(); i++) {
-	//	cout << v[i].first << " (" << v[i].second.first << ", " << v[i].second.second << ")"endl;
-	//}
-
-	//cout << "mArroundBulbCount" << "\t" << "mIsLightOn" << "\t" << "r" << "\t" << "c" << endl;
-//	cout << "정렬된 결과" << endl;
-	for (int i = 0; i < v.size(); i++) {
-		//cout << v[i].mArroundBulbCount << "\t" << v[i].mIsLightOn << "\t" << v[i].r << "\t" << v[i].c << endl;
-	}
-	//sleep(4);
-	return v;
-}
-
-
-
-void PrintMap(bool map[][10]) {
-	cout << "========== Map 출력 ==========" << endl;
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			cout << map[i][j];
-		}
-		cout << endl;
-	}
-
-}
-
-bool CheckSuccess(bool map[][10]) {
-	int flag = true;
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			if (map[i][j])
-				return false;
-		}
+bool IsDone() {
+	for (int j = 0; j < MAX_SIZE; j++) {
+		if (isLight[MAX_SIZE - 1][j])
+			return false;
 	}
 
 	return true;
 }
 
-void Solution(int r, int c, bool pre_map[][10], bool pre_visit[][10]) {
-	bool map[10][10];
-	int count[10][10]; // 자기 주변에 있는 1의 개수
-	bool visit[10][10] = { false }; // 방문 표시
-
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			map[i][j] = pre_map[i][j];
-			visit[i][j] = pre_visit[i][j];
+void PrintLight() {
+	for (int i = 0; i < MAX_SIZE; i++) {
+		for (int j = 0; j < MAX_SIZE; j++) {
+			cout << isLight[i][j] << " ";
 		}
+		cout << endl;
 	}
-
-
-
-	//cout << "Solution(" << r << ", " << c << ")" << endl;
-
-	// 지금 잘못 건드려서 전체적인 오류가 생겼음
-	// dfs 형태로 작성하려 했는데
-	// bfs 형태로 푸는 것이 올바를 것 같음 
-
-	//PrintMap(map);
-	if ( 0 <= r && r <= 9 && 0 <= c && c <= 9) { // 정상 범주일 때
-		TurnOnOffLight(r, c, map);
-		visit[r][c] = true;
-		cout << r << " " << c << endl;
-	}
-
-	int visit_true_count = 0;
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 10; j++) {
-			if (visit[i][j])
-				visit_true_count++;
-		}
-	}
-	cout << visit_true_count << endl;
-
-	if (CheckSuccess(map)) {
-		cout << CheckSuccess(map) << endl;
-		cout << "성공" << endl;
-		exit(0);
-	}
-	else {
-		//cout << "못 찾음" << endl;
-	}
-
-	//sleep(1);
-	vector<Info> v; // 벡터에 저장
-	v = SearchRoute(map, visit); // 가능한 경우 탐색
-
-	for (int i = 0; i < v.size(); i++) {
-		//if (visit[v[i].r][v[i].c] == false) {
-			//visit[v[i].r][v[i].c] = true; // 재귀 함수 안에서 true 시켜줌
-			Solution(v[i].r, v[i].c, map, visit);
-	//	}
-	}	
-
-
-	
 }
 
+int Solution() {
+	int ans = INF;
+	Backup();
 
+	// 0행 따로 처리
+	// 경우의 수 전체 탐색
+	// 0 행의 경우에 따라 아래 전구들은 필연적으로 최소로 끌 수 있다.
+	int T = 1 << MAX_SIZE;
+	for (int tc = 0; tc < T; tc++) {
+		int turnOnCount = 0;
+		CopyBackupToIsLight();
+
+		// 선택된 전구
+		for (int j = 0; j < MAX_SIZE; j++) {
+			if (tc & (1 << j)) {
+				TurnOnConditon(0, j);
+				turnOnCount++;
+			}
+		}
+
+		// 테스트 케이스 진행
+		turnOnCount += RunTC(tc); 
+
+		if (IsDone() && ans > turnOnCount)
+			ans = turnOnCount;
+	}
+
+	if (ans == INF)
+		return -1;
+	return ans;
+}
+
+int main() {
+	FastIO();
+	Input();
+	cout << Solution();
+
+	return 0;
+}
