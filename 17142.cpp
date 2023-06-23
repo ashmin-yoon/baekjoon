@@ -211,8 +211,10 @@ int main() {
 	Input();
 	Solution();
 
-	if (ans == INF)
+	if (ans == INF && space_count != 0)
 		ans = -1;
+	if (ans == INF && space_count == 0)
+		ans = 0;
 	cout << ans << endl;
 	return 0;
 }
