@@ -4,3 +4,10 @@ a.out.dSYM/
 test.c
 test.cpp
 *.swp
+
+# 자바 바이트 코드
+*.class
+
+# 자바 IDE 관련
+.idea/
+out
