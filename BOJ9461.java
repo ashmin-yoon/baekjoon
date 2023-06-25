@@ -1,6 +1,6 @@
 import java.io.*;
 
-class Main {
+class BOJ9461 {
     public static int MAX_SIZE = 101;
     static Long[] arr = new Long[MAX_SIZE];
 
@@ -26,5 +26,6 @@ class Main {
         }
 
         System.out.print(sb.toString());
+        br.close();
     }
 }
