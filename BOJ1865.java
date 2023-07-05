@@ -72,9 +72,9 @@ public class BOJ1865 {
                     if (dist[i][k] == INF || dist[k][j] == INF)
                         continue;
                     dist[i][j] = Math.min(dist[i][j], dist[i][k] + dist[k][j]);
-                    if (dist[i][i] < 0)
-                        return "YES";
                 }
+                if (dist[i][i] < 0)
+                    return "YES";
             }
         }
 
