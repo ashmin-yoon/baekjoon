@@ -25,12 +25,14 @@ public class BOJ1865 {
     public static void main(String[] args) throws IOException {
         br = new BufferedReader(new InputStreamReader(System.in));
         int T = Integer.parseInt(br.readLine());
+        StringBuilder sb = new StringBuilder();
 
         while (T-- > 0) {
             initEdges();
             input();
-            System.out.println(solution());
+            sb.append(solution()).append('\n');
         }
+        System.out.println(sb);
     }
 
     private static void input() throws IOException {
