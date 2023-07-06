@@ -8,6 +8,7 @@ public class BOJ1238 {
     private static final int MAX_SIZE = 1001;
     private static final int INF = 987654321;
     private static List<List<Edge>> adj = new ArrayList<>();
+    private static List<List<Edge>> reverseAdj = new ArrayList<>();
 
     static class Edge implements Comparable<Edge> {
         int u, v, time;
@@ -57,23 +58,42 @@ public class BOJ1238 {
         }
     }
 
+    // 속도 향상
+    // 힌트 참고
     private static int solution() {
 
         int ans = -INF;
 
         // 목적지 ~ 각 지점까지의 시간
-        int[] fromTo = dijkstra(X);
+        int[] fromTo = dijkstra(X, adj);
+
+        // 간선 뒤집기
+        setReverseAdj();
+        int[] reverseFromTo = dijkstra(X, reverseAdj);
 
         // 각 지점에서 출발 ~ 목적지 X까지
         for (int i = 1; i <= N; i++) {
-            ans = Math.max(ans, dijkstra(i)[X] + fromTo[i]);
+            ans = Math.max(ans, reverseFromTo[i] + fromTo[i]);
         }
 
         return ans;
     }
 
+    private static void setReverseAdj() {
+        for (int i = 0; i < MAX_SIZE; i++) {
+            reverseAdj.add(new ArrayList<>());
+        }
 
-    private static int[] dijkstra(int start) {
+        // u -> v 를 v -> u 로 변경
+        for (List<Edge> edges : adj) {
+            for (Edge edge : edges) {
+                reverseAdj.get(edge.v).add(new Edge(edge.v, edge.u, edge.time));
+            }
+        }
+    }
+
+
+    private static int[] dijkstra(int start, List<List<Edge>> path) {
         int[] dist = new int[N + 1];
         boolean[] visited = new boolean[N + 1];
         Arrays.fill(dist, INF);
@@ -94,7 +114,7 @@ public class BOJ1238 {
             visited[v] = true; // v 방문
 
             // v 인접 간선
-            for (Edge edge : adj.get(v)) {
+            for (Edge edge : path.get(v)) {
                 // u(중간 지점) 까지 경로 없음
                 if (dist[edge.u] == INF)
                     continue;
