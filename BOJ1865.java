@@ -7,7 +7,19 @@ public class BOJ1865 {
 
     private static final int MAX_SIZE = 501;
     private static final int INF = 987654321;
-    private static int[][] dist = new int[MAX_SIZE][MAX_SIZE];
+    private static List<Edge> edges = new ArrayList<>();
+    private static int[] dist;
+    private static boolean[] checked;
+    static class Edge {
+        int u;
+        int v;
+        int weight;
+        public Edge(int u, int v, int weight) {
+            this.u = u;
+            this.v = v;
+            this.weight = weight;
+        }
+    }
 
 
     public static void main(String[] args) throws IOException {
@@ -15,7 +27,7 @@ public class BOJ1865 {
         int T = Integer.parseInt(br.readLine());
 
         while (T-- > 0) {
-            initDist();
+            initEdges();
             input();
             System.out.println(solution());
         }
@@ -37,8 +49,8 @@ public class BOJ1865 {
 
             // 도로는 가장 짧은 시간 선택
             // 양방향
-            dist[S][E] = Math.min(dist[S][E], T);
-            dist[E][S] = Math.min(dist[E][S], T);
+            edges.add(new Edge(S, E, T));
+            edges.add(new Edge(E, S, T));
         }
 
         // 웜홀 정보
@@ -49,41 +61,67 @@ public class BOJ1865 {
             T = Integer.parseInt(st.nextToken());
 
             // 단 방향
-            dist[S][E] = Math.min(dist[S][E], -T);
+            edges.add(new Edge(S, E, -T));
         }
     }
 
-    public static void initDist() {
-        for (int i = 0; i < MAX_SIZE; i++) {
-            for (int j = 0; j < MAX_SIZE; j++) {
-                dist[i][j] = INF;
-            }
-            dist[i][i] = 0;
-        }
+    private static void initEdges() {
+        edges.clear();
     }
 
     private static String solution() {
+        dist = new int[N + 1];
+        checked = new boolean[N + 1];
+        Arrays.fill(dist, INF);
+        Arrays.fill(checked, false);
 
-        // Floyd Warshall
-        for (int k = 1; k <= N; k++) {
-            for (int i = 1; i <= N; i++) {
-                for (int j = 1; j <= N; j++) {
-                    // 중간 경로 없음
-                    if (dist[i][k] == INF || dist[k][j] == INF)
-                        continue;
-                    dist[i][j] = Math.min(dist[i][j], dist[i][k] + dist[k][j]);
-                }
-                if (dist[i][i] < 0)
-                    return "YES";
-            }
-        }
-
-        for (int start = 1; start <= N; start++) {
-            if (dist[start][start] < 0) {
+        for (int i = 1; i <= N; i++) {
+            if (bellmanFord(i))
                 return "YES";
-            }
         }
         return "NO";
     }
+
+    // 벨만-포드 알고리즘 활용
+    // return true = 음의 사이클 존재, false = 음의 사이클 없음
+    private static boolean bellmanFord(int start) {
+        if (checked[start])
+            return false;
+
+        // 시작 지점 거리 초기화
+        dist[start] = 0;
+
+        // V - 1 번 반복
+        for (int i = 0; i < N - 1; i++) {
+            // E edge 전체 반복
+            for (Edge edge : edges) {
+                int u = edge.u;
+                int v = edge.v;
+                int time = edge.weight;
+
+                // 경로 없음
+                if (dist[u] == INF)
+                    continue;
+
+                // 현재까지 구한 v 까지 경로
+                // u 까지의 경로 + u->v 경로  비교
+                if (dist[v] > dist[u] + time) {
+                    dist[v] = dist[u] + time;
+                    checked[v] = true;
+                }
+            }
+        }
+
+        // 음수 사이클 판별
+        for (Edge edge : edges) {
+            if (dist[edge.u] == INF)
+                continue;
+            if (dist[edge.v] > dist[edge.u] + edge.weight)
+                return true;
+        }
+
+        return false;
+    }
+
 
 }
