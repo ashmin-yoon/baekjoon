@@ -6,7 +6,7 @@ public class BOJ11779 {
     private static int S, E, count;
     private static final int INF = 1987654321;
     private static final int MAX_SIZE = 1001;
-    private static List<Info>[] adj = new List[MAX_SIZE];
+    private static int[][] adj = new int[MAX_SIZE][MAX_SIZE];
     private static boolean[] visited = new boolean[MAX_SIZE];
     private static int[] path = new int[MAX_SIZE]; // path 는 이전 위치
     static class Info implements Comparable<Info> {
@@ -46,7 +46,8 @@ public class BOJ11779 {
 
     private static void init() {
         for (int i = 0; i < MAX_SIZE; i++) {
-            adj[i] = new ArrayList();
+            Arrays.fill(adj[i], INF);
+            adj[i][i] = 0;
         }
     }
 
@@ -62,7 +63,7 @@ public class BOJ11779 {
             int v = Integer.parseInt(st.nextToken());
             int cost = Integer.parseInt(st.nextToken());
 
-            adj[u].add(new Info(v, cost));
+            adj[u][v] = Math.min(cost, adj[u][v]);
         }
         st = new StringTokenizer(br.readLine());
         S = Integer.parseInt(st.nextToken());
@@ -91,10 +92,12 @@ public class BOJ11779 {
             visited[u] = true;
             path[u] = pre; // u로 가기위한 이전 위치
 
-            for (Info adj : adj[u]) {
-                int v = adj.target;
-                if (cost[v] > cost[u] + adj.cost) {
-                    cost[v] = cost[u] + adj.cost;
+            for (int v = 1; v <= N; v++) {
+                if (adj[u][v] == INF)
+                    continue;
+
+                if (cost[v] > cost[u] + adj[u][v]) {
+                    cost[v] = cost[u] + adj[u][v];
                     pq.add(new Info(u, v, cost[v]));
                 }
             }
