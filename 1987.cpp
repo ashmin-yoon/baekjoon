@@ -9,10 +9,12 @@ int R, C;
 int dy[4] = {-1, 0, 1, 0};
 int dx[4] = {0, 1, 0, -1};
 
+// 시간 단축 참고
+// https://www.acmicpc.net/source/26508302
+
 char board[MAX_SIZE][MAX_SIZE];
-bool visited[MAX_SIZE][MAX_SIZE];
+int visited[MAX_SIZE][MAX_SIZE];
 int ans = 0;
-vector<bool> used(26, false);
 
 void FastIO() {
 	cin.tie(nullptr);
@@ -30,7 +32,7 @@ void Input() {
 }
 
 void Init() {
-	memset(visited, false, sizeof(visited));
+	memset(visited, 0, sizeof(visited));
 	ans = 0;
 }
 
@@ -40,10 +42,11 @@ bool OutOfRange(int y, int x) {
 	return false;
 }
 
-void Dfs(int y, int x, int count) {
+void Dfs(int y, int x, int count, int used) {
 	// 방문
-	used[board[y][x] - 'a'] = true;
-	visited[y][x] = true;
+	if (visited[y][x] == used)
+		return;
+	visited[y][x] = used;
 	ans = max(ans, count);
 
 	for (int i = 0; i < 4; i++) {
@@ -51,18 +54,13 @@ void Dfs(int y, int x, int count) {
 		int nx = x + dx[i];
 
 		if (OutOfRange(ny, nx)) continue;
-		if (visited[ny][nx]) continue;
-		if (used[board[ny][nx] - 'a']) continue;
-		Dfs(ny, nx, count + 1);
+		if (used & (1 << (board[ny][nx] - 'A'))) continue;
+		Dfs(ny, nx, count + 1, used | (1 << (board[ny][nx] - 'A')));
 	}
-
-	// 복원
-	used[board[y][x] - 'a'] = false;
-	visited[y][x] = false;
 }
 
 void Solution() {
-	Dfs(1, 1, 1);
+	Dfs(1, 1, 1, 1 << (board[1][1] - 'A'));
 }
 
 int main() {
